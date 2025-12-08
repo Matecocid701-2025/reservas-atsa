@@ -1,6 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, set, remove, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
+// --- CONFIGURACIÓN DE FIREBASE ---
 const firebaseConfig = {
   apiKey: "AIzaSyA6c4YS_LbkoTgwr4kPRtJAQXWq4pBwhyU",
   authDomain: "reservasatsa-251a4.firebaseapp.com",
@@ -115,7 +116,6 @@ window.saveBooking = function(e) {
         .then(() => {
             closeModal();
             e.target.reset();
-            // CAMBIO: Al guardar, resetear a OCUPADO
             document.querySelector('input[value="ocupado"]').checked = true;
             toggleFormFields();
             alert("¡Guardado exitosamente!");
@@ -263,10 +263,9 @@ function showActivities(dateStr) {
     }
 }
 
-// CAMBIO: Al abrir, forzar selección de ocupado
 window.openModal = () => { 
     document.getElementById('booking-modal').style.display = 'flex'; 
-    document.querySelector('input[value="ocupado"]').checked = true; // <--- Línea clave
+    document.querySelector('input[value="ocupado"]').checked = true; 
     toggleFormFields(); 
 };
 window.closeModal = () => document.getElementById('booking-modal').style.display = 'none';

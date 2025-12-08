@@ -49,6 +49,7 @@ function processAutoUpdates() {
 
     for (let key in allEvents) {
         let ev = allEvents[key];
+        // FIX FECHAS: Usamos replace para asegurar formato y agregamos T00:00:00
         const startDate = new Date(ev.startDate.replace(/-/g, '/') + ' 00:00:00');
         const endDate = new Date(ev.endDate.replace(/-/g, '/') + ' 23:59:59');
 

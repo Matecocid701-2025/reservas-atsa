@@ -21,6 +21,7 @@ let currentMonth = currentDate.getMonth();
 let currentYear = currentDate.getFullYear();
 let selectedDate = null;
 let allEvents = {}; 
+let myPieChart = null; // Variable para guardar la instancia del gráfico
 
 const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
@@ -45,10 +46,146 @@ window.closeCustomAlert = function() {
     document.getElementById('custom-alert').style.display = 'none';
 }
 
-// --- FUNCIONES NUEVAS: REGISTRO DE OCUPANTES ---
+// --- FUNCIONES NUEVAS: ESTADÍSTICAS ANUALES ---
+window.openStatsModal = function() {
+    document.getElementById('stats-modal').style.display = 'flex';
+    document.getElementById('stats-year').innerText = currentYear;
+    renderStatsChart(); // Renderizar gráfico al abrir
+}
+window.closeStatsModal = function() {
+    document.getElementById('stats-modal').style.display = 'none';
+}
+
+function calculateAnnualStats() {
+    const counts = [0, 0, 0, 0, 0, 0]; // Contadores para cabañas 1 a 6
+    const thisYear = new Date().getFullYear();
+    const startOfYear = new Date(thisYear, 0, 1); // 1ro de Enero 00:00:00
+    const endOfYear = new Date(thisYear, 11, 31, 23, 59, 59); // 31 de Dic 23:59:59
+
+    for (let key in allEvents) {
+        const ev = allEvents[key];
+        // Solo contar "ocupado"
+        if (ev.status !== 'ocupado') continue;
+
+        // Convertir fechas string a objetos Date para comparar
+        const start = new Date(ev.startDate.replace(/-/g, '/') + ' 00:00:00');
+        const end = new Date(ev.endDate.replace(/-/g, '/') + ' 23:59:59');
+
+        // Si la ocupación no toca el año actual, saltar
+        if (end < startOfYear || start > endOfYear) continue;
+
+        // Recortar el rango de fechas para que solo cuente los días DENTRO de este año
+        const effectiveStart = start < startOfYear ? startOfYear : start;
+        const effectiveEnd = end > endOfYear ? endOfYear : end;
+
+        // Calcular la diferencia en milisegundos y convertir a días
+        const diffTime = Math.abs(effectiveEnd - effectiveStart);
+        // Se usa ceil para asegurar que se cuente al menos 1 día si hay superposición
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        const cabinIdx = parseInt(ev.cabin) - 1;
+        if (cabinIdx >= 0 && cabinIdx < 6) {
+            counts[cabinIdx] += diffDays;
+        }
+    }
+    return counts;
+}
+
+function renderStatsChart() {
+    const ctx = document.getElementById('statsChart').getContext('2d');
+    const dataPoints = calculateAnnualStats();
+    const totalDays = dataPoints.reduce((a, b) => a + b, 0);
+
+    // Si ya existe un gráfico, destruirlo antes de crear uno nuevo
+    if (myPieChart) {
+        myPieChart.destroy();
+    }
+
+    // Obtener los colores de las variables CSS para que coincidan
+    const style = getComputedStyle(document.body);
+    const colors = [
+        style.getPropertyValue('--c1-color').trim(),
+        style.getPropertyValue('--c2-color').trim(),
+        style.getPropertyValue('--c3-color').trim(),
+        style.getPropertyValue('--c4-color').trim(),
+        style.getPropertyValue('--c5-color').trim(),
+        style.getPropertyValue('--c6-color').trim()
+    ];
+
+    // Crear el gráfico de pastel
+    myPieChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: ['Cabaña 1', 'Cabaña 2', 'Cabaña 3', 'Cabaña 4', 'Cabaña 5', 'Cabaña 6'],
+            datasets: [{
+                data: dataPoints,
+                backgroundColor: colors,
+                borderWidth: 2,
+                borderColor: '#ffffff',
+                hoverOffset: 10
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false, // Permite que el canvas se adapte al contenedor
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        color: '#333',
+                        font: { family: 'Poppins', size: 12 },
+                        padding: 15,
+                        usePointStyle: true
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0,0,0,0.8)',
+                    titleFont: { family: 'Poppins' },
+                    bodyFont: { family: 'Poppins' },
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            const value = context.parsed;
+                            const percentage = totalDays > 0 ? Math.round((value / totalDays) * 100) : 0;
+                            return `${label}${value} días (${percentage}%)`;
+                        }
+                    }
+                },
+                // Plugin para mostrar mensaje si no hay datos
+                noData: {
+                    display: totalDays === 0
+                }
+            },
+            animation: {
+                animateScale: true,
+                animateRotate: true
+            }
+        },
+        plugins: [{ // Plugin personalizado para mostrar texto si está vacío
+            id: 'noData',
+            beforeDraw: (chart) => {
+                if (chart.options.plugins.noData.display) {
+                    const { ctx, width, height } = chart;
+                    ctx.save();
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.font = '16px Poppins';
+                    ctx.fillStyle = '#999';
+                    ctx.fillText('Sin ocupaciones este año', width / 2, height / 2);
+                    ctx.restore();
+                }
+            }
+        }]
+    });
+}
+
+// --- FUNCIONES REGISTRO MENSUAL (Celeste) ---
 window.openGuestModal = function() {
     document.getElementById('guest-modal').style.display = 'flex';
-    renderGuestList(); // Generar lista al abrir
+    renderGuestList();
 }
 window.closeGuestModal = function() {
     document.getElementById('guest-modal').style.display = 'none';
@@ -79,29 +216,19 @@ function renderGuestList() {
 }
 
 function getGuestsForCurrentMonth() {
-    // 1. Obtener primer y último día del mes visible en calendario
     const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
     const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0);
-    
     const list = [];
 
     for (let key in allEvents) {
         const ev = allEvents[key];
-        
-        // FILTRO 1: Solo "OCUPADO"
         if (ev.status !== 'ocupado') continue;
-
-        // Convertir fechas string a Date
         const start = new Date(ev.startDate.replace(/-/g, '/') + ' 00:00:00');
         const end = new Date(ev.endDate.replace(/-/g, '/') + ' 23:59:59');
-
-        // FILTRO 2: Si la ocupación toca el mes actual
-        // (Si empieza antes de fin de mes Y termina después de principio de mes)
         if (start <= lastDayOfMonth && end >= firstDayOfMonth) {
             list.push(ev);
         }
     }
-    // Ordenar por fecha de ingreso
     list.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
     return list;
 }
@@ -130,7 +257,7 @@ window.downloadGuestTxt = function() {
     anchor.download = `Ocupantes_${monthNames[currentMonth]}_${currentYear}.txt`;
     anchor.href = window.URL.createObjectURL(blob);
     anchor.target = "_blank";
-    anchor.click(); // Forzar descarga
+    anchor.click(); 
 }
 
 // --- LÓGICA GENERAL APP ---
@@ -143,10 +270,9 @@ function listenToFirebase() {
         renderCalendar();
         if(selectedDate) showActivities(selectedDate);
         
-        // Si el modal de reporte está abierto, actualizarlo en vivo
-        if(document.getElementById('guest-modal').style.display === 'flex') {
-            renderGuestList();
-        }
+        // Actualizar modales si están abiertos
+        if(document.getElementById('guest-modal').style.display === 'flex') renderGuestList();
+        if(document.getElementById('stats-modal').style.display === 'flex') renderStatsChart();
     });
 }
 
@@ -313,12 +439,10 @@ function renderCalendar() {
 
 document.getElementById('prevMonth').addEventListener('click', () => {
     currentMonth--; if (currentMonth < 0) { currentMonth = 11; currentYear--; } renderCalendar();
-    // Al cambiar de mes, si el modal está abierto, recargar lista
     if(document.getElementById('guest-modal').style.display === 'flex') renderGuestList();
 });
 document.getElementById('nextMonth').addEventListener('click', () => {
     currentMonth++; if (currentMonth > 11) { currentMonth = 0; currentYear++; } renderCalendar();
-    // Al cambiar de mes, si el modal está abierto, recargar lista
     if(document.getElementById('guest-modal').style.display === 'flex') renderGuestList();
 });
 

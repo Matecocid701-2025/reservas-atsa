@@ -4,7 +4,8 @@
     --bg-gradient-top: #345069;
     --bg-gradient-bottom: #233545;
     --accent-orange: #FF8C61;
-    --accent-blue: #29b6f6; /* Nuevo color celeste */
+    --accent-blue: #29b6f6; 
+    --accent-red: #FF5252; /* Nuevo color rojo */
     --text-white: #ffffff;
     --text-muted: #aab8c2;
     --card-bg: #ffffff;
@@ -116,7 +117,7 @@ header button { background: none; border: none; color: white; font-size: 1.2rem;
 }
 .fab:active { transform: scale(0.95); }
 
-/* NUEVO: Botón Secundario (Celeste) */
+/* Botones Secundarios (Base) */
 .fab-secondary {
     width: 55px; height: 55px; border-radius: 50%;
     background: var(--accent-blue); border: none; color: white; font-size: 1.5rem;
@@ -125,6 +126,11 @@ header button { background: none; border: none; color: white; font-size: 1.2rem;
 }
 .fab-secondary:active { transform: scale(0.95); }
 
+/* NUEVO: Botón Rojo */
+.fab-red {
+    background: var(--accent-red);
+    box-shadow: 0 5px 15px rgba(255, 82, 82, 0.5);
+}
 
 /* --- MODALES --- */
 .modal {
@@ -137,7 +143,7 @@ header button { background: none; border: none; color: white; font-size: 1.2rem;
     padding: 25px; animation: slideUp 0.3s ease-out; color: #333; max-height: 90vh; overflow-y: auto;
 }
 
-/* NUEVO: MODAL PANTALLA COMPLETA (REGISTRO) */
+/* MODALES PANTALLA COMPLETA */
 .full-screen-modal {
     display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: #f4f6f8; z-index: 20000; flex-direction: column;

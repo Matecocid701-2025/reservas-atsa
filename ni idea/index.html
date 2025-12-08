@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gestión Cabañas ATSA</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="app-container">
+        <header>
+            <button id="prevMonth" type="button"><i class="fa-solid fa-chevron-left"></i></button>
+            <h2 id="monthYearDisplay">Mes Año</h2>
+            <button id="nextMonth" type="button"><i class="fa-solid fa-chevron-right"></i></button>
+        </header>
+
+        <div class="calendar-wrapper">
+            <div class="weekdays">
+                <div>Dom</div><div>Lun</div><div>Mar</div><div>Mie</div><div>Jue</div><div>Vie</div><div>Sab</div>
+            </div>
+            <div class="days-grid" id="daysGrid"></div>
+        </div>
+
+        <div class="cabin-legend">
+            <div class="legend-item">
+                <i class="fa-solid fa-house" style="color: var(--c1-color);"></i>
+                <span>Cabaña 1</span>
+            </div>
+            <div class="legend-item">
+                <i class="fa-solid fa-house" style="color: var(--c2-color);"></i>
+                <span>Cabaña 2</span>
+            </div>
+            <div class="legend-item">
+                <i class="fa-solid fa-house" style="color: var(--c3-color);"></i>
+                <span>Cabaña 3</span>
+            </div>
+            <div class="legend-item">
+                <i class="fa-solid fa-house" style="color: var(--c4-color);"></i>
+                <span>Cabaña 4</span>
+            </div>
+            <div class="legend-item">
+                <i class="fa-solid fa-house" style="color: var(--c5-color);"></i>
+                <span>Cabaña 5</span>
+            </div>
+            <div class="legend-item">
+                <i class="fa-solid fa-house" style="color: var(--c6-color);"></i>
+                <span>Cabaña 6</span>
+            </div>
+        </div>
+
+        <div class="bottom-sheet">
+            <div class="drag-handle"></div>
+            <h3>Actividades <span id="selected-date-label"></span></h3>
+            <div id="activities-list" class="activities-list">
+                <p class="empty-msg">Selecciona una fecha para ver detalles.</p>
+            </div>
+        </div>
+
+        <button class="fab" onclick="openModal()" type="button">
+            <i class="fa-solid fa-house"></i>
+        </button>
+    </div>
+
+    <div id="booking-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Nueva Gestión</h3>
+                <button onclick="closeModal()" class="close-btn" type="button">&times;</button>
+            </div>
+            
+            <form id="bookingForm">
+                <label>Tipo de Gestión</label>
+                <div class="status-selector">
+                    <label class="radio-label reserved">
+                        <input type="radio" name="status" value="reservado" onchange="toggleFormFields()"> Reservado
+                    </label>
+                    <label class="radio-label occupied">
+                        <input type="radio" name="status" value="ocupado" onchange="toggleFormFields()" checked> Ocupado
+                    </label>
+                    <label class="radio-label cleaning">
+                        <input type="radio" name="status" value="limpieza" onchange="toggleFormFields()"> Limpieza
+                    </label>
+                </div>
+
+                <label>Seleccionar Cabaña</label>
+                <select id="cabinSelect" required>
+                    <option value="1">Cabaña 1</option>
+                    <option value="2">Cabaña 2</option>
+                    <option value="3">Cabaña 3</option>
+                    <option value="4">Cabaña 4</option>
+                    <option value="5">Cabaña 5</option>
+                    <option value="6">Cabaña 6</option>
+                </select>
+
+                <div class="row">
+                    <div>
+                        <label>Ingreso</label>
+                        <input type="date" id="startDate" required>
+                    </div>
+                    <div>
+                        <label>Salida</label>
+                        <input type="date" id="endDate" required>
+                    </div>
+                </div>
+
+                <div id="details-container">
+                    <label>Nombre del Ocupante</label>
+                    <input type="text" id="occupantName" placeholder="Ej: Juan Pérez">
+
+                    <label>DNI</label>
+                    <input type="number" id="occupantDNI" placeholder="Sin puntos">
+
+                    <label>Teléfono (Opcional)</label>
+                    <input type="tel" id="occupantPhone" placeholder="Opcional">
+                </div>
+
+                <button type="submit" class="save-btn">Guardar</button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module" src="script.js"></script>
+</body>
+</html>

@@ -22,6 +22,8 @@ let currentYear = currentDate.getFullYear();
 let selectedDate = null;
 let allEvents = {}; 
 
+const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+
 document.addEventListener('DOMContentLoaded', () => {
     initApp();
 });
@@ -32,6 +34,106 @@ function initApp() {
     toggleFormFields(); 
 }
 
+// --- FUNCIONES ALERTA ---
+window.showCustomAlert = function(message) {
+    const alertBox = document.getElementById('custom-alert');
+    const alertMsg = document.getElementById('custom-alert-message');
+    alertMsg.innerText = message;
+    alertBox.style.display = 'flex';
+}
+window.closeCustomAlert = function() {
+    document.getElementById('custom-alert').style.display = 'none';
+}
+
+// --- FUNCIONES NUEVAS: REGISTRO DE OCUPANTES ---
+window.openGuestModal = function() {
+    document.getElementById('guest-modal').style.display = 'flex';
+    renderGuestList(); // Generar lista al abrir
+}
+window.closeGuestModal = function() {
+    document.getElementById('guest-modal').style.display = 'none';
+}
+
+function renderGuestList() {
+    const container = document.getElementById('guest-list-container');
+    document.getElementById('report-month-label').innerText = `Registros de ${monthNames[currentMonth]} ${currentYear}`;
+    container.innerHTML = "";
+
+    const guests = getGuestsForCurrentMonth();
+
+    if (guests.length === 0) {
+        container.innerHTML = "<p style='text-align:center; margin-top:20px; color:#999;'>No hay ocupantes registrados en este mes.</p>";
+        return;
+    }
+
+    guests.forEach(g => {
+        const item = document.createElement('div');
+        item.className = 'guest-item';
+        item.innerHTML = `
+            <strong>${g.occupant}</strong>
+            <span>DNI: ${g.dni} | Tel: ${g.phone}</span>
+            <span>Cabaña ${g.cabin} | ${g.startDate} al ${g.endDate}</span>
+        `;
+        container.appendChild(item);
+    });
+}
+
+function getGuestsForCurrentMonth() {
+    // 1. Obtener primer y último día del mes visible en calendario
+    const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
+    const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0);
+    
+    const list = [];
+
+    for (let key in allEvents) {
+        const ev = allEvents[key];
+        
+        // FILTRO 1: Solo "OCUPADO"
+        if (ev.status !== 'ocupado') continue;
+
+        // Convertir fechas string a Date
+        const start = new Date(ev.startDate.replace(/-/g, '/') + ' 00:00:00');
+        const end = new Date(ev.endDate.replace(/-/g, '/') + ' 23:59:59');
+
+        // FILTRO 2: Si la ocupación toca el mes actual
+        // (Si empieza antes de fin de mes Y termina después de principio de mes)
+        if (start <= lastDayOfMonth && end >= firstDayOfMonth) {
+            list.push(ev);
+        }
+    }
+    // Ordenar por fecha de ingreso
+    list.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+    return list;
+}
+
+window.downloadGuestTxt = function() {
+    const guests = getGuestsForCurrentMonth();
+    if (guests.length === 0) {
+        showCustomAlert("No hay datos para descargar.");
+        return;
+    }
+
+    let textContent = `REGISTRO DE OCUPANTES - ${monthNames[currentMonth].toUpperCase()} ${currentYear}\n`;
+    textContent += "==================================================\n\n";
+
+    guests.forEach(g => {
+        textContent += `NOMBRE:  ${g.occupant}\n`;
+        textContent += `DNI:     ${g.dni}\n`;
+        textContent += `TEL:     ${g.phone}\n`;
+        textContent += `CABAÑA:  ${g.cabin}\n`;
+        textContent += `FECHA:   ${g.startDate} hasta ${g.endDate}\n`;
+        textContent += "--------------------------------------------------\n";
+    });
+
+    const blob = new Blob([textContent], { type: "text/plain" });
+    const anchor = document.createElement("a");
+    anchor.download = `Ocupantes_${monthNames[currentMonth]}_${currentYear}.txt`;
+    anchor.href = window.URL.createObjectURL(blob);
+    anchor.target = "_blank";
+    anchor.click(); // Forzar descarga
+}
+
+// --- LÓGICA GENERAL APP ---
 function listenToFirebase() {
     const dbRef = ref(db, 'reservas');
     onValue(dbRef, (snapshot) => {
@@ -40,6 +142,11 @@ function listenToFirebase() {
         processAutoUpdates(); 
         renderCalendar();
         if(selectedDate) showActivities(selectedDate);
+        
+        // Si el modal de reporte está abierto, actualizarlo en vivo
+        if(document.getElementById('guest-modal').style.display === 'flex') {
+            renderGuestList();
+        }
     });
 }
 
@@ -49,7 +156,6 @@ function processAutoUpdates() {
 
     for (let key in allEvents) {
         let ev = allEvents[key];
-        // FIX FECHAS: Usamos replace para asegurar formato y agregamos T00:00:00
         const startDate = new Date(ev.startDate.replace(/-/g, '/') + ' 00:00:00');
         const endDate = new Date(ev.endDate.replace(/-/g, '/') + ' 23:59:59');
 
@@ -95,7 +201,7 @@ window.saveBooking = function(e) {
     if (status !== 'limpieza') {
         const hayConflicto = verificarConflicto(cabin, startDate, endDate);
         if (hayConflicto) {
-            alert("⚠️ ERROR: Esa cabaña ya está reservada u ocupada en esas fechas.");
+            showCustomAlert("⚠️ Esa cabaña ya está ocupada en esas fechas.");
             return; 
         }
     }
@@ -119,10 +225,10 @@ window.saveBooking = function(e) {
             e.target.reset();
             document.querySelector('input[value="ocupado"]').checked = true;
             toggleFormFields();
-            alert("¡Guardado exitosamente!");
+            showCustomAlert("¡Guardado exitosamente!");
         })
         .catch((error) => {
-            alert("Error: " + error.message);
+            showCustomAlert("Error: " + error.message);
         });
 }
 
@@ -150,8 +256,6 @@ window.toggleFormFields = function() {
         document.getElementById('occupantDNI').setAttribute('required', 'true');
     }
 }
-
-const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
 function renderCalendar() {
     const daysGrid = document.getElementById('daysGrid');
@@ -209,9 +313,13 @@ function renderCalendar() {
 
 document.getElementById('prevMonth').addEventListener('click', () => {
     currentMonth--; if (currentMonth < 0) { currentMonth = 11; currentYear--; } renderCalendar();
+    // Al cambiar de mes, si el modal está abierto, recargar lista
+    if(document.getElementById('guest-modal').style.display === 'flex') renderGuestList();
 });
 document.getElementById('nextMonth').addEventListener('click', () => {
     currentMonth++; if (currentMonth > 11) { currentMonth = 0; currentYear++; } renderCalendar();
+    // Al cambiar de mes, si el modal está abierto, recargar lista
+    if(document.getElementById('guest-modal').style.display === 'flex') renderGuestList();
 });
 
 function formatDateStr(y, m, d) {

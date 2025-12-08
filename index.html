@@ -58,9 +58,14 @@
             </div>
         </div>
 
-        <button class="fab" onclick="openModal()" type="button">
-            <i class="fa-solid fa-house"></i>
-        </button>
+        <div class="fab-container">
+            <button class="fab" onclick="openModal()" type="button">
+                <i class="fa-solid fa-house"></i>
+            </button>
+            <button class="fab-secondary" onclick="openGuestModal()" type="button">
+                <i class="fa-solid fa-users"></i>
+            </button>
+        </div>
     </div>
 
     <div id="booking-modal" class="modal">
@@ -118,6 +123,33 @@
 
                 <button type="submit" class="save-btn">Guardar</button>
             </form>
+        </div>
+    </div>
+
+    <div id="guest-modal" class="full-screen-modal">
+        <div class="full-screen-header">
+            <h3>Registro Mensual (Ocupados)</h3>
+            <button onclick="closeGuestModal()" class="close-btn-white"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="full-screen-body">
+            <p class="report-info" id="report-month-label">Mes Actual</p>
+            <div id="guest-list-container">
+                </div>
+        </div>
+        <div class="full-screen-footer">
+            <button onclick="downloadGuestTxt()" class="download-btn">
+                <i class="fa-solid fa-file-arrow-down"></i> Descargar TXT
+            </button>
+        </div>
+    </div>
+
+    <div id="custom-alert" class="custom-alert-overlay">
+        <div class="custom-alert-box">
+            <div style="font-size: 3rem; color: #4db6ac; margin-bottom: 10px;">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <h2 id="custom-alert-message">¡Guardado exitosamente!</h2>
+            <button onclick="closeCustomAlert()">Aceptar</button>
         </div>
     </div>
 

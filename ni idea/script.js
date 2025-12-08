@@ -1,6 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, set, remove, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
+// --- CONFIGURACIÓN DE FIREBASE ---
 const firebaseConfig = {
   apiKey: "AIzaSyA6c4YS_LbkoTgwr4kPRtJAQXWq4pBwhyU",
   authDomain: "reservasatsa-251a4.firebaseapp.com",
@@ -29,6 +30,17 @@ function initApp() {
     listenToFirebase(); 
     renderCalendar();
     toggleFormFields(); 
+}
+
+// --- FUNCIONES NUEVAS: ALERTA PERSONALIZADA ---
+window.showCustomAlert = function(message) {
+    const alertBox = document.getElementById('custom-alert');
+    const alertMsg = document.getElementById('custom-alert-message');
+    alertMsg.innerText = message;
+    alertBox.style.display = 'flex';
+}
+window.closeCustomAlert = function() {
+    document.getElementById('custom-alert').style.display = 'none';
 }
 
 function listenToFirebase() {
@@ -93,7 +105,8 @@ window.saveBooking = function(e) {
     if (status !== 'limpieza') {
         const hayConflicto = verificarConflicto(cabin, startDate, endDate);
         if (hayConflicto) {
-            alert("⚠️ ERROR: Esa cabaña ya está reservada u ocupada en esas fechas.");
+            // Usamos la alerta personalizada para errores también
+            showCustomAlert("⚠️ Esa cabaña ya está ocupada en esas fechas.");
             return; 
         }
     }
@@ -115,13 +128,14 @@ window.saveBooking = function(e) {
         .then(() => {
             closeModal();
             e.target.reset();
-            // CAMBIO: Al guardar, resetear a OCUPADO
             document.querySelector('input[value="ocupado"]').checked = true;
             toggleFormFields();
-            alert("¡Guardado exitosamente!");
+            
+            // AQUÍ ESTÁ EL CAMBIO PRINCIPAL:
+            showCustomAlert("¡Guardado exitosamente!");
         })
         .catch((error) => {
-            alert("Error: " + error.message);
+            showCustomAlert("Error: " + error.message);
         });
 }
 
@@ -263,10 +277,9 @@ function showActivities(dateStr) {
     }
 }
 
-// CAMBIO: Al abrir, forzar selección de ocupado
 window.openModal = () => { 
     document.getElementById('booking-modal').style.display = 'flex'; 
-    document.querySelector('input[value="ocupado"]').checked = true; // <--- Línea clave
+    document.querySelector('input[value="ocupado"]').checked = true; 
     toggleFormFields(); 
 };
 window.closeModal = () => document.getElementById('booking-modal').style.display = 'none';

@@ -69,10 +69,11 @@ function renderGuestList() {
     guests.forEach(g => {
         const item = document.createElement('div');
         item.className = 'guest-item';
-        // Mostrar Afiliado y Establecimiento si existen
+        
+        // Comprobar si existen los campos nuevos antes de mostrarlos
         const affiliateText = g.affiliate ? `N° Afiliado: ${g.affiliate}` : '';
         const establishmentText = g.establishment ? `Establecimiento: ${g.establishment}` : '';
-        
+
         item.innerHTML = `
             <strong>${g.occupant}</strong>
             <span>DNI: ${g.dni} | Tel: ${g.phone}</span>
@@ -212,7 +213,7 @@ window.saveBooking = function(e) {
         endDate: endDate,
         occupant: status === 'limpieza' ? 'Limpieza' : document.getElementById('occupantName').value,
         dni: status === 'limpieza' ? '' : document.getElementById('occupantDNI').value,
-        // Guardamos los nuevos datos:
+        // GUARDANDO LOS NUEVOS CAMPOS:
         affiliate: status === 'limpieza' ? '' : document.getElementById('occupantAffiliate').value,
         establishment: status === 'limpieza' ? '' : document.getElementById('occupantEstablishment').value,
         phone: status === 'limpieza' ? '' : document.getElementById('occupantPhone').value
@@ -253,6 +254,7 @@ window.toggleFormFields = function() {
         detailsDiv.style.display = 'block';
         document.getElementById('occupantName').setAttribute('required', 'true');
         document.getElementById('occupantDNI').setAttribute('required', 'true');
+        // Hacemos obligatorios los nuevos campos (si prefieres opcionales, borra estas 2 lineas)
         document.getElementById('occupantAffiliate').setAttribute('required', 'true');
         document.getElementById('occupantEstablishment').setAttribute('required', 'true');
     }

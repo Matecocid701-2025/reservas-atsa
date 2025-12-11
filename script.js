@@ -21,7 +21,6 @@ let currentMonth = currentDate.getMonth();
 let currentYear = currentDate.getFullYear();
 let selectedDate = null;
 let allEvents = {}; 
-let myPieChart = null; // Variable para guardar la instancia del gráfico
 
 const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
@@ -44,142 +43,6 @@ window.showCustomAlert = function(message) {
 }
 window.closeCustomAlert = function() {
     document.getElementById('custom-alert').style.display = 'none';
-}
-
-// --- FUNCIONES NUEVAS: ESTADÍSTICAS ANUALES ---
-window.openStatsModal = function() {
-    document.getElementById('stats-modal').style.display = 'flex';
-    document.getElementById('stats-year').innerText = currentYear;
-    renderStatsChart(); // Renderizar gráfico al abrir
-}
-window.closeStatsModal = function() {
-    document.getElementById('stats-modal').style.display = 'none';
-}
-
-function calculateAnnualStats() {
-    const counts = [0, 0, 0, 0, 0, 0]; // Contadores para cabañas 1 a 6
-    const thisYear = new Date().getFullYear();
-    const startOfYear = new Date(thisYear, 0, 1); // 1ro de Enero 00:00:00
-    const endOfYear = new Date(thisYear, 11, 31, 23, 59, 59); // 31 de Dic 23:59:59
-
-    for (let key in allEvents) {
-        const ev = allEvents[key];
-        // Solo contar "ocupado"
-        if (ev.status !== 'ocupado') continue;
-
-        // Convertir fechas string a objetos Date para comparar
-        const start = new Date(ev.startDate.replace(/-/g, '/') + ' 00:00:00');
-        const end = new Date(ev.endDate.replace(/-/g, '/') + ' 23:59:59');
-
-        // Si la ocupación no toca el año actual, saltar
-        if (end < startOfYear || start > endOfYear) continue;
-
-        // Recortar el rango de fechas para que solo cuente los días DENTRO de este año
-        const effectiveStart = start < startOfYear ? startOfYear : start;
-        const effectiveEnd = end > endOfYear ? endOfYear : end;
-
-        // Calcular la diferencia en milisegundos y convertir a días
-        const diffTime = Math.abs(effectiveEnd - effectiveStart);
-        // Se usa ceil para asegurar que se cuente al menos 1 día si hay superposición
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-        const cabinIdx = parseInt(ev.cabin) - 1;
-        if (cabinIdx >= 0 && cabinIdx < 6) {
-            counts[cabinIdx] += diffDays;
-        }
-    }
-    return counts;
-}
-
-function renderStatsChart() {
-    const ctx = document.getElementById('statsChart').getContext('2d');
-    const dataPoints = calculateAnnualStats();
-    const totalDays = dataPoints.reduce((a, b) => a + b, 0);
-
-    // Si ya existe un gráfico, destruirlo antes de crear uno nuevo
-    if (myPieChart) {
-        myPieChart.destroy();
-    }
-
-    // Obtener los colores de las variables CSS para que coincidan
-    const style = getComputedStyle(document.body);
-    const colors = [
-        style.getPropertyValue('--c1-color').trim(),
-        style.getPropertyValue('--c2-color').trim(),
-        style.getPropertyValue('--c3-color').trim(),
-        style.getPropertyValue('--c4-color').trim(),
-        style.getPropertyValue('--c5-color').trim(),
-        style.getPropertyValue('--c6-color').trim()
-    ];
-
-    // Crear el gráfico de pastel
-    myPieChart = new Chart(ctx, {
-        type: 'pie',
-        data: {
-            labels: ['Cabaña 1', 'Cabaña 2', 'Cabaña 3', 'Cabaña 4', 'Cabaña 5', 'Cabaña 6'],
-            datasets: [{
-                data: dataPoints,
-                backgroundColor: colors,
-                borderWidth: 2,
-                borderColor: '#ffffff',
-                hoverOffset: 10
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false, // Permite que el canvas se adapte al contenedor
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        color: '#333',
-                        font: { family: 'Poppins', size: 12 },
-                        padding: 15,
-                        usePointStyle: true
-                    }
-                },
-                tooltip: {
-                    backgroundColor: 'rgba(0,0,0,0.8)',
-                    titleFont: { family: 'Poppins' },
-                    bodyFont: { family: 'Poppins' },
-                    callbacks: {
-                        label: function(context) {
-                            let label = context.label || '';
-                            if (label) {
-                                label += ': ';
-                            }
-                            const value = context.parsed;
-                            const percentage = totalDays > 0 ? Math.round((value / totalDays) * 100) : 0;
-                            return `${label}${value} días (${percentage}%)`;
-                        }
-                    }
-                },
-                // Plugin para mostrar mensaje si no hay datos
-                noData: {
-                    display: totalDays === 0
-                }
-            },
-            animation: {
-                animateScale: true,
-                animateRotate: true
-            }
-        },
-        plugins: [{ // Plugin personalizado para mostrar texto si está vacío
-            id: 'noData',
-            beforeDraw: (chart) => {
-                if (chart.options.plugins.noData.display) {
-                    const { ctx, width, height } = chart;
-                    ctx.save();
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.font = '16px Poppins';
-                    ctx.fillStyle = '#999';
-                    ctx.fillText('Sin ocupaciones este año', width / 2, height / 2);
-                    ctx.restore();
-                }
-            }
-        }]
-    });
 }
 
 // --- FUNCIONES REGISTRO MENSUAL (Celeste) ---
@@ -206,10 +69,16 @@ function renderGuestList() {
     guests.forEach(g => {
         const item = document.createElement('div');
         item.className = 'guest-item';
+        // Mostrar Afiliado y Establecimiento si existen
+        const affiliateText = g.affiliate ? `N° Afiliado: ${g.affiliate}` : '';
+        const establishmentText = g.establishment ? `Establecimiento: ${g.establishment}` : '';
+        
         item.innerHTML = `
             <strong>${g.occupant}</strong>
             <span>DNI: ${g.dni} | Tel: ${g.phone}</span>
-            <span>Cabaña ${g.cabin} | ${g.startDate} al ${g.endDate}</span>
+            <span>${affiliateText}</span>
+            <span>${establishmentText}</span>
+            <span style="margin-top:5px; color:#29b6f6; font-weight:500;">Cabaña ${g.cabin} | ${g.startDate} al ${g.endDate}</span>
         `;
         container.appendChild(item);
     });
@@ -244,11 +113,13 @@ window.downloadGuestTxt = function() {
     textContent += "==================================================\n\n";
 
     guests.forEach(g => {
-        textContent += `NOMBRE:  ${g.occupant}\n`;
-        textContent += `DNI:     ${g.dni}\n`;
-        textContent += `TEL:     ${g.phone}\n`;
-        textContent += `CABAÑA:  ${g.cabin}\n`;
-        textContent += `FECHA:   ${g.startDate} hasta ${g.endDate}\n`;
+        textContent += `NOMBRE:         ${g.occupant}\n`;
+        textContent += `DNI:            ${g.dni}\n`;
+        textContent += `N° AFILIADO:    ${g.affiliate || '-'}\n`;
+        textContent += `ESTABLECIMIENTO:${g.establishment || '-'}\n`;
+        textContent += `TEL:            ${g.phone}\n`;
+        textContent += `CABAÑA:         ${g.cabin}\n`;
+        textContent += `FECHA:          ${g.startDate} hasta ${g.endDate}\n`;
         textContent += "--------------------------------------------------\n";
     });
 
@@ -270,9 +141,8 @@ function listenToFirebase() {
         renderCalendar();
         if(selectedDate) showActivities(selectedDate);
         
-        // Actualizar modales si están abiertos
+        // Actualizar modal lista si está abierto
         if(document.getElementById('guest-modal').style.display === 'flex') renderGuestList();
-        if(document.getElementById('stats-modal').style.display === 'flex') renderStatsChart();
     });
 }
 
@@ -342,6 +212,9 @@ window.saveBooking = function(e) {
         endDate: endDate,
         occupant: status === 'limpieza' ? 'Limpieza' : document.getElementById('occupantName').value,
         dni: status === 'limpieza' ? '' : document.getElementById('occupantDNI').value,
+        // Guardamos los nuevos datos:
+        affiliate: status === 'limpieza' ? '' : document.getElementById('occupantAffiliate').value,
+        establishment: status === 'limpieza' ? '' : document.getElementById('occupantEstablishment').value,
         phone: status === 'limpieza' ? '' : document.getElementById('occupantPhone').value
     };
 
@@ -380,6 +253,8 @@ window.toggleFormFields = function() {
         detailsDiv.style.display = 'block';
         document.getElementById('occupantName').setAttribute('required', 'true');
         document.getElementById('occupantDNI').setAttribute('required', 'true');
+        document.getElementById('occupantAffiliate').setAttribute('required', 'true');
+        document.getElementById('occupantEstablishment').setAttribute('required', 'true');
     }
 }
 

@@ -1,142 +1,208 @@
 <!DOCTYPE html>
-
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Gimnastik - Local.V1</title>
-    <link rel="icon" href="/logo.png" type="image/x-icon">
-    <meta name="theme-color" content="#0f0508">
+    <title>Gestión Cabañas ATSA</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
-
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: { colors: { gimnastik: { bg: '#120509', card: '#1F0A12', primary: '#FF0055', light: '#FFE5EC', gray: '#8A4A5E' } }, fontFamily: { sans: ['Inter', 'sans-serif'] } }
-            }
-        }
-    </script>
+    <link rel="stylesheet" href="styles.css">
+    <style> body { font-family: 'Inter', sans-serif; } </style>
 </head>
-<body class="antialiased selection:bg-gimnastik-primary selection:text-white pb-20">
+<body class="bg-gray-50 text-gray-800 h-screen flex flex-col overflow-hidden no-select">
 
-    <nav class="w-full glass-panel sticky top-0 z-40 px-6 py-4 mb-8 flex justify-between items-center">
-        <div class="flex items-center gap-2">
-            <div class="w-8 h-8 bg-gimnastik-primary rounded-lg flex items-center justify-center font-bold text-white">G</div>
-            <h1 class="text-xl font-bold tracking-tight">gimnastik <span class="text-xs opacity-50 ml-1">LOCAL</span></h1>
-        </div>
-        <div class="flex gap-4 items-center relative">
-            <button onclick="showView('access')" id="btn-nav-access" class="text-sm font-medium text-gimnastik-primary border-b-2 border-gimnastik-primary pb-1">Ingreso</button>
-            <button onclick="toggleThemeMenu()" id="btn-theme-toggle" class="hidden text-gray-400 hover:text-white transition p-2 rounded-full hover:bg-white/10 relative"><i data-lucide="palette" class="w-5 h-5"></i></button>
+    <!-- CABECERA -->
+    <header class="bg-white border-b border-gray-200 px-4 py-2 shadow-sm z-20 relative">
+        <div class="flex justify-between items-center flex-wrap-mobile">
             
-            <div id="theme-menu" class="hidden absolute top-12 right-0 bg-[#1F0A12] border border-white/10 rounded-xl p-4 shadow-2xl z-50 w-48 fade-in">
-                <div class="grid grid-cols-4 gap-2">
-                    <button onclick="setTheme('74, 4, 29')" class="w-8 h-8 rounded-full bg-[#FF0055] border-2 border-white/30"></button>
-                    <button onclick="setTheme('255, 255, 255')" class="w-8 h-8 rounded-full bg-white"></button>
-                    <button onclick="setTheme('41, 121, 255')" class="w-8 h-8 rounded-full bg-[#2979FF]"></button>
-                    <button onclick="setTheme('255, 214, 0')" class="w-8 h-8 rounded-full bg-[#FFD600]"></button>
+            <!-- Logo y Estado -->
+            <div class="flex items-center gap-4">
+                <div class="flex items-center gap-2">
+                    <div class="bg-blue-600 text-white p-1.5 rounded-lg shadow-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                        </svg>
+                    </div>
+                    <h1 class="text-lg font-bold text-gray-800 hidden sm:block">Gestión Cabañas</h1>
+                </div>
+                
+                <!-- ESTADO -->
+                <div id="connectionStatus" class="flex items-center gap-2 px-3 py-1 bg-gray-100 rounded-full border border-gray-200 shadow-sm transition-colors duration-300">
+                    <div id="statusDot" class="w-2 h-2 rounded-full bg-red-500"></div>
+                    <span id="statusText" class="text-[10px] font-bold text-gray-500 uppercase tracking-wide">Desconectado</span>
                 </div>
             </div>
 
-            <button onclick="requestAdminAccess()" id="btn-nav-admin" class="text-gray-400 hover:text-white transition p-2 rounded-full hover:bg-white/10"><i data-lucide="key-round" class="w-5 h-5"></i></button>
-            <button onclick="logoutAdmin()" id="btn-logout" class="hidden text-red-500 hover:text-white transition p-2 rounded-full hover:bg-red-500/20"><i data-lucide="log-out" class="w-5 h-5"></i></button>
-        </div>
-    </nav>
-
-    <div id="login-modal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-        <div class="glass-panel w-full max-w-sm rounded-2xl p-8 relative border border-gimnastik-primary/30 shadow-2xl">
-            <button onclick="closeLoginModal()" class="absolute top-4 right-4 text-gray-500 hover:text-white"><i data-lucide="x" class="w-6 h-6"></i></button>
-            <div class="text-center mb-8">
-                <div class="w-16 h-16 bg-gimnastik-primary/20 rounded-full flex items-center justify-center mx-auto mb-4"><i data-lucide="lock" class="w-8 h-8 text-gimnastik-primary"></i></div>
-                <h3 class="text-2xl font-bold text-white">Acceso Admin</h3>
-                <p class="text-xs text-gray-400">Usuario: ADMIN | Clave: ADMIN2025</p>
+            <!-- Navegación -->
+            <div class="flex items-center bg-gray-100 rounded-lg p-1 mx-2">
+                <button id="prevMonth" class="w-8 h-8 flex items-center justify-center rounded hover:bg-white hover:shadow text-gray-600 transition">&lt;</button>
+                <span id="monthYearDisplay" class="px-2 font-semibold text-sm w-32 text-center capitalize"></span>
+                <button id="nextMonth" class="w-8 h-8 flex items-center justify-center rounded hover:bg-white hover:shadow text-gray-600 transition">&gt;</button>
             </div>
-            <form onsubmit="event.preventDefault(); performLogin();" class="space-y-4">
-                <input type="text" id="login-user" placeholder="Usuario" class="input-dark w-full rounded-xl px-4 py-3 text-center">
-                <input type="password" id="login-pass" placeholder="Contraseña" class="input-dark w-full rounded-xl px-4 py-3 text-center">
-                <div id="login-error" class="hidden text-red-500 text-xs text-center font-bold">Credenciales incorrectas</div>
-                <button type="submit" class="btn-primary w-full py-3 rounded-xl font-bold shadow-lg">Ingresar</button>
+
+            <!-- Botones Acción -->
+            <div class="flex items-center gap-3">
+                <button id="loginBtn" class="bg-yellow-400 text-blue-900 text-xs font-bold py-2 px-3 rounded-lg shadow-sm flex items-center gap-1 transition hover:scale-105 hover:bg-yellow-500">
+                    🔑 <span id="loginBtnText">Ingresar</span>
+                </button>
+                <!-- Botón Reserva (Oculto hasta loguear) -->
+                <button id="newResBtn" class="hidden bg-blue-600 text-white text-xs font-bold py-2 px-3 rounded-lg shadow-sm flex items-center gap-1 transition hover:bg-blue-700">
+                    <span>+</span> <span class="hidden sm:inline">Reserva</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Leyenda -->
+        <div class="flex justify-end gap-3 mt-2 px-2 text-[10px] text-gray-500 font-medium">
+            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-yellow-400"></span>Señado</span>
+            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-green-500"></span>Pagado</span>
+            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-red-500"></span>Ocupado</span>
+            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-blue-400"></span>Limpieza</span>
+        </div>
+    </header>
+
+    <!-- GRILLA -->
+    <div class="flex-1 overflow-hidden relative flex flex-col bg-white">
+        <div id="gridHeaderContainer" class="overflow-hidden border-b border-gray-200 bg-gray-50">
+            <div class="flex">
+                <div class="w-24 flex-shrink-0 border-r p-2 text-[10px] font-bold text-gray-500 uppercase flex items-center justify-center bg-gray-50 z-10 shadow-sm">Unidad</div>
+                <div id="daysHeader" class="flex flex-1"></div>
+            </div>
+        </div>
+        <div id="gridBodyContainer" class="flex-1 overflow-auto custom-scrollbar relative">
+            <!-- Capa de bloqueo (Login Overlay) -->
+            <div id="loginOverlay" class="absolute inset-0 bg-gray-50/80 backdrop-blur-sm z-30 flex flex-col items-center justify-center text-center p-4">
+                <div class="bg-white p-6 rounded-xl shadow-xl border border-gray-200 max-w-sm">
+                    <div class="text-4xl mb-3">🔒</div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">Acceso Restringido</h3>
+                    <p class="text-sm text-gray-500 mb-4">Debes ingresar con tu cuenta ATSA para ver y gestionar las reservas.</p>
+                    <button onclick="document.getElementById('loginBtn').click()" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-blue-700 transition">
+                        Iniciar Sesión
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex min-w-max">
+                <div class="w-24 flex-shrink-0 sticky left-0 z-10 bg-white border-r shadow-lg">
+                    <div id="cabinLabels" class="flex flex-col"></div>
+                </div>
+                <div id="gridCells" class="flex flex-col relative"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL LOGIN -->
+    <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-60 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6 transform scale-100 transition-transform">
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-bold text-blue-900">Acceso ATSA</h2>
+                <p class="text-xs text-gray-500 mt-1">Sistema de Gestión de Cabañas</p>
+            </div>
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Usuario</label>
+                    <input type="text" id="inputUser" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="Ingrese usuario">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Contraseña</label>
+                    <input type="password" id="inputPass" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="Ingrese contraseña">
+                </div>
+                <p id="loginError" class="text-red-500 text-xs text-center font-bold min-h-[1.25rem]"></p>
+                <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition shadow-lg transform active:scale-95">
+                    INGRESAR
+                </button>
+            </form>
+            <button id="closeLoginModal" class="w-full mt-4 text-gray-400 text-sm hover:text-gray-600 hover:underline">Cancelar</button>
+        </div>
+    </div>
+
+    <!-- MODAL RESERVA -->
+    <div id="resModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[95vh] overflow-y-auto transform transition-all scale-100">
+            <div class="p-4 border-b flex justify-between items-center sticky top-0 bg-white z-20">
+                <h2 class="text-lg font-bold text-gray-800" id="modalTitle">Nueva Reserva</h2>
+                <button id="closeModal" class="text-2xl text-gray-400 hover:text-gray-600">&times;</button>
+            </div>
+            
+            <form id="resForm" class="p-5 space-y-4 text-sm">
+                <input type="hidden" id="resId">
+                <!-- Fila 1: Cabaña -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Cabaña</label>
+                    <select id="resCabin" class="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none font-medium">
+                        <option value="1">Cabaña 1</option><option value="2">Cabaña 2</option><option value="3">Cabaña 3</option><option value="4">Cabaña 4</option><option value="5">Cabaña 5</option><option value="6">Cabaña 6</option>
+                    </select>
+                </div>
+                <!-- Fila 2: Estado -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 mb-2 uppercase">Estado</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="cursor-pointer border rounded-lg p-2 flex items-center gap-2 hover:bg-yellow-50 transition has-[:checked]:ring-2 has-[:checked]:ring-yellow-400 has-[:checked]:bg-yellow-50">
+                            <input type="radio" name="status" value="senado" class="peer hidden" checked>
+                            <div class="w-3 h-3 rounded-full bg-yellow-400 border border-yellow-600"></div><span class="text-xs font-bold text-gray-700">🟡 Señado</span>
+                        </label>
+                        <label class="cursor-pointer border rounded-lg p-2 flex items-center gap-2 hover:bg-green-50 transition has-[:checked]:ring-2 has-[:checked]:ring-green-500 has-[:checked]:bg-green-50">
+                            <input type="radio" name="status" value="pagado" class="peer hidden">
+                            <div class="w-3 h-3 rounded-full bg-green-500 border border-green-700"></div><span class="text-xs font-bold text-gray-700">🟢 Pagado</span>
+                        </label>
+                        <label class="cursor-pointer border rounded-lg p-2 flex items-center gap-2 hover:bg-red-50 transition has-[:checked]:ring-2 has-[:checked]:ring-red-500 has-[:checked]:bg-red-50">
+                            <input type="radio" name="status" value="ocupado" class="peer hidden">
+                            <div class="w-3 h-3 rounded-full bg-red-500 border border-red-700"></div><span class="text-xs font-bold text-gray-700">🔴 Ocupado</span>
+                        </label>
+                        <label class="cursor-pointer border rounded-lg p-2 flex items-center gap-2 hover:bg-blue-50 transition has-[:checked]:ring-2 has-[:checked]:ring-blue-400 has-[:checked]:bg-blue-50">
+                            <input type="radio" name="status" value="limpieza" class="peer hidden">
+                            <div class="w-3 h-3 rounded-full bg-blue-400 border border-blue-600"></div><span class="text-xs font-bold text-gray-700">🔵 Limpieza</span>
+                        </label>
+                    </div>
+                </div>
+                <!-- Fila 3: Fechas -->
+                <div class="grid grid-cols-2 gap-3 bg-blue-50 p-3 rounded-lg border border-blue-100">
+                    <div><label class="block text-xs font-bold text-blue-800">Entrada</label><input type="date" id="resCheckIn" class="w-full p-1 bg-white border rounded font-medium" required></div>
+                    <div><label class="block text-xs font-bold text-blue-800">Salida</label><input type="date" id="resCheckOut" class="w-full p-1 bg-white border rounded font-medium" required></div>
+                </div>
+                <!-- Datos -->
+                <div class="space-y-3">
+                    <div><label class="block text-xs font-bold text-gray-500">Nombre</label><input type="text" id="resName" class="w-full p-2 border rounded-lg" placeholder="Nombre del huésped"></div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div><label class="block text-xs font-bold text-gray-500">Teléfono</label><input type="tel" id="resPhone" class="w-full p-2 border rounded-lg"></div>
+                        <div><label class="block text-xs font-bold text-gray-500">DNI</label><input type="text" id="resDni" class="w-full p-2 border rounded-lg"></div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div><label class="block text-xs font-bold text-gray-500">Total $</label><input type="number" id="resPrice" class="w-full p-2 border rounded-lg"></div>
+                        <div><label class="block text-xs font-bold text-gray-500">Seña $</label><input type="number" id="resDeposit" class="w-full p-2 border rounded-lg"></div>
+                    </div>
+                    <div><label class="block text-xs font-bold text-gray-500">Saldo</label><input type="text" id="resBalance" class="w-full p-2 bg-gray-100 border rounded-lg font-bold text-red-600" readonly></div>
+                    <div><label class="block text-xs font-bold text-gray-500">Notas</label><textarea id="resNotes" class="w-full p-2 border rounded-lg" rows="2"></textarea></div>
+                </div>
+                <p id="resFormError" class="text-red-500 text-xs font-bold text-center min-h-[1rem]"></p>
+                <div class="flex justify-between pt-3 border-t">
+                    <button type="button" id="btnDeleteRes" class="text-red-500 text-xs font-bold hover:text-red-700 hidden transition">Eliminar</button>
+                    <div class="flex gap-2 ml-auto">
+                        <button type="button" id="btnCancelRes" class="px-4 py-2 bg-gray-100 rounded-lg font-medium text-gray-600 hover:bg-gray-200 transition">Cancelar</button>
+                        <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg font-bold shadow hover:bg-blue-700 transition transform active:scale-95">GUARDAR</button>
+                    </div>
+                </div>
             </form>
         </div>
     </div>
 
-    <div id="modal-overlay" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="glass-panel w-full max-w-2xl rounded-2xl flex flex-col max-h-[90vh] relative shadow-2xl">
-            <div class="p-6 border-b border-white/10 flex justify-between items-center bg-gimnastik-card rounded-t-2xl">
-                <div><h3 id="modal-title" class="text-2xl font-bold text-white">Disciplina</h3><p class="text-sm text-gimnastik-gray">Gestión</p></div>
-                <button onclick="closeModal()" class="group p-2 bg-white/5 hover:bg-white/20 rounded-full transition"><i data-lucide="x" class="w-6 h-6 text-white"></i></button>
-            </div>
-            <div id="modal-body" class="p-6 overflow-y-auto space-y-4"></div>
-        </div>
-    </div>
-
-    <main class="max-w-md mx-auto px-4 md:max-w-5xl">
-        <section id="view-access" class="fade-in block max-w-md mx-auto">
-            <div class="text-center mb-10"><h2 class="text-3xl font-bold mb-2">Bienvenido</h2><p class="text-gimnastik-gray">Ingresa tu DNI.</p></div>
-            <div class="glass-panel rounded-3xl p-8 shadow-2xl breathing-effect relative overflow-hidden">
-                <div class="mb-6"><label class="block text-sm font-medium mb-2 text-gimnastik-light">DNI</label><input type="number" id="access-dni" placeholder="Ej: 12345678" class="input-dark w-full rounded-xl px-4 py-4 text-xl text-center"></div>
-                <button onclick="handleAccess()" class="btn-primary w-full py-4 rounded-xl text-lg shadow-lg">Registrar Asistencia</button>
-            </div>
-            <div id="access-loader" class="hidden mt-8 text-center fade-in"><div class="loader-box mx-auto mb-4"></div><p class="animate-pulse text-gimnastik-primary font-bold">PROCESANDO...</p></div>
-            <div id="access-result" class="hidden mt-6 glass-panel rounded-2xl p-6 text-center border-l-4 border-gimnastik-primary">
-                <div id="access-icon" class="mx-auto w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center mb-4 text-green-500"></div>
-                <h3 id="access-name" class="text-2xl font-bold text-white mb-1"></h3>
-                <p id="access-discipline" class="text-gimnastik-primary font-medium mb-4 uppercase text-sm tracking-wider"></p>
-                <div class="grid grid-cols-2 gap-4 mt-4">
-                    <div class="bg-black/30 p-3 rounded-xl"><p class="text-xs text-gray-400">Asistencias</p><p id="access-used" class="text-2xl font-bold"></p></div>
-                    <div class="bg-black/30 p-3 rounded-xl"><p class="text-xs text-gray-400" id="label-remaining">Restantes</p><p id="access-remaining" class="text-2xl font-bold text-gimnastik-primary"></p></div>
-                </div>
-                <div id="expiry-warning" class="hidden mt-3 text-xs text-red-400 bg-red-900/20 p-2 rounded">Membresía vencida.</div>
-            </div>
-        </section>
-
-        <section id="view-admin" class="fade-in hidden">
-            <div class="grid md:grid-cols-2 gap-8">
-                <div class="space-y-8">
-                    <div class="glass-panel rounded-2xl p-6 border border-gimnastik-primary/30 relative overflow-hidden">
-                        <div class="absolute top-0 right-0 w-20 h-20 bg-gimnastik-primary blur-3xl opacity-20"></div>
-                        <h3 class="flex items-center gap-2 text-lg font-bold mb-6 text-white"><i data-lucide="user-plus" class="w-5 h-5 text-gimnastik-primary"></i> Registrar Alumno</h3>
-                        <form id="form-register" onsubmit="event.preventDefault(); registerStudent();" class="space-y-4">
-                            <input type="text" id="reg-name" placeholder="Nombre Completo" required class="input-dark w-full rounded-lg px-4 py-3">
-                            <input type="number" id="reg-dni" placeholder="DNI" required class="input-dark w-full rounded-lg px-4 py-3">
-                            <div class="grid grid-cols-2 gap-4">
-                                <div><select id="reg-discipline" class="input-dark w-full rounded-lg px-4 py-3"></select><div id="disciplines-tags" class="flex flex-wrap gap-2 mt-2"></div></div>
-                                <input type="number" id="reg-visits" value="8" class="input-dark w-full rounded-lg px-4 py-3">
-                            </div>
-                            <div class="space-y-2 py-2">
-                                <div class="flex items-center gap-3"><input type="checkbox" id="reg-unlimited" onchange="toggleVisitsInput()" class="w-5 h-5 accent-gimnastik-primary"><label>Pase Libre</label></div>
-                                <div class="flex items-center gap-3"><input type="checkbox" id="reg-month-pack" class="w-5 h-5 accent-gimnastik-primary"><label>Mes (Vence en 30 días)</label></div>
-                            </div>
-                            <button type="submit" class="btn-primary w-full py-3 rounded-xl font-bold shadow-lg">Guardar Alumno</button>
-                        </form>
-                    </div>
-
-                    <div class="glass-panel rounded-2xl p-6">
-                        <h3 class="flex items-center gap-2 text-lg font-bold mb-4 text-gimnastik-light"><i data-lucide="dumbbell" class="w-5 h-5 text-gimnastik-primary"></i> Nueva Disciplina</h3>
-                        <div class="flex gap-2">
-                            <input type="text" id="new-discipline-name" placeholder="Ej: Yoga" class="input-dark flex-1 rounded-lg px-3 py-2">
-                            <button onclick="addDiscipline()" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg"><i data-lucide="plus"></i></button>
-                        </div>
-                    </div>
-                </div>
-                <div class="space-y-6">
-                    <div>
-                        <h3 class="text-lg font-bold mb-4 flex justify-between"><span>Estado</span><span class="text-xs bg-gimnastik-primary px-2 py-1 rounded" id="total-students-badge">0</span></h3>
-                        <div id="stats-container" class="grid grid-cols-1 gap-4"></div>
-                    </div>
-                    <div class="glass-panel p-6 rounded-2xl">
-                        <h4 class="text-sm font-bold mb-4 text-gray-400">Distribución</h4>
-                        <div class="relative h-64 w-full"><canvas id="gymChart"></canvas></div>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <!-- Solo script local -->
-    <script src="index.js"></script>
+    <!-- FIREBASE -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    <script>
+        const firebaseConfig = {
+          apiKey: "AIzaSyCJuFT6skjx-E0KyN8i6NrMOTlQgAFrPYk",
+          authDomain: "calendariotareas-2cbd6.firebaseapp.com",
+          projectId: "calendariotareas-2cbd6",
+          storageBucket: "calendariotareas-2cbd6.firebasestorage.app",
+          messagingSenderId: "229294837874",
+          appId: "1:229294837874:web:d422f51ab7a8f06fd7f2eb",
+          measurementId: "G-NLW5LD85ZT"
+        };
+        firebase.initializeApp(firebaseConfig);
+    </script>
+    
+    <script src="app.js"></script>
 </body>
 </html>

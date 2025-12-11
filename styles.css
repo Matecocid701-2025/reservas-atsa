@@ -1,0 +1,167 @@
+/* --- VARIABLES & BASE --- */
+:root {
+    --cell-width: 48px;      /* Ancho de celda cómodo */
+    --cell-height: 64px;     /* Altura de fila */
+    --header-height: 50px;
+    --primary-color: #2563eb;
+}
+
+body {
+    background-color: #f3f4f6; /* Gris muy suave, moderno */
+    color: #1f2937;
+    font-family: 'Inter', sans-serif;
+    -webkit-tap-highlight-color: transparent; /* Quita el brillo azul al tocar en móviles */
+}
+
+/* Evitar selección de texto en toda la app para mejorar la experiencia de arrastre */
+.no-select {
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* --- CABECERA --- */
+header {
+    background: white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* En móvil, apilamos elementos */
+@media (max-width: 768px) {
+    header .flex-wrap-mobile {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+    }
+    .mobile-hidden {
+        display: none;
+    }
+    h1 {
+        font-size: 1.2rem;
+    }
+}
+
+/* --- GRID --- */
+.day-header-cell {
+    width: var(--cell-width);
+    height: var(--header-height);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-right: 1px solid #f3f4f6; /* Líneas sutiles */
+    border-bottom: 1px solid #e5e7eb;
+    background-color: #ffffff;
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+.day-header-cell.weekend {
+    background-color: #f9fafb;
+    color: #ef4444;
+}
+
+.day-header-cell.today {
+    background-color: #eff6ff;
+    color: var(--primary-color);
+    font-weight: bold;
+    border-bottom: 3px solid var(--primary-color);
+}
+
+/* Filas de Cabañas (Sticky Left) */
+.cabin-label-cell {
+    height: var(--cell-height);
+    display: flex;
+    align-items: center;
+    padding-left: 1rem;
+    border-bottom: 1px solid #f3f4f6;
+    border-right: 1px solid #e5e7eb;
+    font-weight: 600;
+    color: #374151;
+    font-size: 0.85rem;
+    background-color: #ffffff;
+    z-index: 20;
+}
+
+/* Fila de la grilla */
+.grid-row {
+    display: flex;
+    height: var(--cell-height);
+    border-bottom: 1px solid #f3f4f6;
+    position: relative; 
+}
+
+.grid-cell {
+    width: var(--cell-width);
+    height: 100%;
+    border-right: 1px solid #f9fafb; 
+    cursor: pointer;
+    transition: background 0.1s;
+}
+
+.grid-cell:hover { background-color: #f0f9ff; }
+.grid-cell.weekend { background-color: #fafafa; }
+
+/* --- INDICADOR DE SELECCIÓN (Minimalista) --- */
+/* Este es el recuadro que aparece al arrastrar */
+.selection-highlight {
+    position: absolute;
+    top: 10px;
+    bottom: 10px;
+    background-color: rgba(59, 130, 246, 0.2); /* Azul muy suave */
+    border: 2px dashed #3b82f6; /* Borde punteado */
+    border-radius: 6px;
+    pointer-events: none; 
+    z-index: 15;
+    /* Animación suave */
+    transition: width 0.1s ease-out, left 0.1s ease-out;
+}
+
+/* --- BARRAS DE RESERVA (Diseño Plano/Flat) --- */
+.reservation-bar {
+    position: absolute;
+    top: 12px;
+    bottom: 12px;
+    border-radius: 6px; /* Bordes redondeados modernos */
+    padding: 0 8px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: white;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Sombra suave */
+    cursor: pointer;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    /* Transición suave al hacer hover */
+    transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.reservation-bar:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+    z-index: 30;
+}
+
+/* Colores Planos y Modernos */
+.res-senado { background-color: #fbbf24; color: #78350f; border-left: 4px solid #d97706; } /* Amarillo Amber */
+.res-pagado { background-color: #4ade80; color: #14532d; border-left: 4px solid #16a34a; } /* Verde Emerald */
+.res-ocupado { background-color: #f87171; color: #7f1d1d; border-left: 4px solid #dc2626; } /* Rojo Rose */
+.res-limpieza { background-color: #60a5fa; color: #1e3a8a; border-left: 4px solid #2563eb; } /* Azul Blue */
+
+/* --- SCROLLBAR --- */
+.custom-scrollbar::-webkit-scrollbar { height: 8px; width: 8px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* --- MODAL --- */
+.modal-content {
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}

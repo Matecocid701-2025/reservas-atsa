@@ -134,7 +134,9 @@ header button { background: none; border: none; color: white; font-size: 1.2rem;
 .modal-content {
     background: white; width: 100%; max-width: 480px; margin: 0 auto;
     border-top-left-radius: 25px; border-top-right-radius: 25px;
-    padding: 25px; animation: slideUp 0.3s ease-out; color: #333; max-height: 90vh; overflow-y: auto;
+    /* Reduje el padding general del modal para ganar espacio */
+    padding: 20px; 
+    animation: slideUp 0.3s ease-out; color: #333; max-height: 90vh; overflow-y: auto;
 }
 
 /* MODALES PANTALLA COMPLETA */
@@ -176,20 +178,43 @@ header button { background: none; border: none; color: white; font-size: 1.2rem;
 @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-/* FORM & OTROS */
-.modal-header { display: flex; justify-content: space-between; margin-bottom: 20px; align-items: center; }
-.close-btn { font-size: 2rem; background: none; border: none; cursor: pointer; line-height: 1; }
-form label { display: block; font-size: 0.95rem; margin-bottom: 6px; color: #444; font-weight: 500; }
-form input, form select {
-    width: 100%; padding: 14px; border: 1px solid #ddd; border-radius: 12px;
-    margin-bottom: 18px; background: #f9f9f9; outline: none; font-size: 1.05rem;
+/* FORM & OTROS (SECCIÓN COMPACTADA) */
+.modal-header { 
+    display: flex; justify-content: space-between; align-items: center;
+    /* Reduje margen inferior del título */
+    margin-bottom: 15px; 
 }
+.close-btn { font-size: 2rem; background: none; border: none; cursor: pointer; line-height: 1; }
+
+form label { 
+    display: block; font-size: 0.95rem; color: #444; font-weight: 500;
+    /* Reduje el espacio entre el título y el campo */
+    margin-bottom: 3px; 
+}
+
+form input, form select {
+    width: 100%; 
+    /* Input más fino (menos padding vertical) */
+    padding: 10px; 
+    border: 1px solid #ddd; border-radius: 12px;
+    /* Menos espacio entre un campo y el siguiente */
+    margin-bottom: 12px; 
+    background: #f9f9f9; outline: none; font-size: 1.05rem;
+}
+
 .row { display: flex; gap: 10px; }
+
 .save-btn {
     width: 100%; padding: 16px; background: var(--bg-gradient-bottom);
     color: white; border: none; border-radius: 12px; font-size: 1.2rem; margin-top: 10px; cursor: pointer;
 }
-.status-selector { display: flex; gap: 8px; margin-bottom: 20px; }
+
+.status-selector { 
+    display: flex; gap: 8px; 
+    /* Reduje margen inferior de los botones de estado */
+    margin-bottom: 15px; 
+}
+
 .radio-label {
     flex: 1; padding: 12px; border-radius: 10px; text-align: center; cursor: pointer;
     border: 1px solid #eee; font-size: 0.9rem; font-weight: 500;
